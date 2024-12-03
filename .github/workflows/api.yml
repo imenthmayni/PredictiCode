@@ -56,16 +56,6 @@ jobs:
 
       - name: Test the Classification API
         run: |
-          curl -X POST http://127.0.0.1:5000/predict/classification ^
-            -H "Content-Type: application/json" ^
-            -d "{
-              \"features\": {
-                \"Year\": 2024,
-                \"Month\": 12,
-                \"Day\": 3,
-                \"Author\": \"${{ env.COMMIT_AUTHOR }}\",
-                \"message\": \"${{ env.COMMIT_MESSAGE }}\",
-                \"modified_files\": \"${{ env.MODIFIED_FILES }}\",
-                \"functions\": \"test_function1 test_function2\"
-              }
-            }"
+          curl -X POST http://127.0.0.1:5000/predict/classification `
+            -H "Content-Type: application/json" `
+            -d '{"features": {"Year": 2024, "Month": 12, "Day": 3, "Author": "${{ env.COMMIT_AUTHOR }}", "message": "${{ env.COMMIT_MESSAGE }}", "modified_files": "${{ env.MODIFIED_FILES }}", "functions": "test_function1 test_function2"}}'
