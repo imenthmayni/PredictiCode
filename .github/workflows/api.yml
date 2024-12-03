@@ -14,59 +14,25 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # Étape 1 : Checkout du code source
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Étape 2 : Configuration de Python
       - name: Set up Python 3.12
         uses: actions/setup-python@v3
         with:
           python-version: "3.12.4"
 
-      # Étape 3 : Installation des dépendances
       - name: Install dependencies
         working-directory: ./api1
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Étape 4 : Exécuter des tests unitaires (ajoutez vos propres tests ici si nécessaire)
-      - name: Run tests
-        working-directory: ./api1
+      - name: Lint with flake8
         run: |
-          python -m unittest discover -s tests
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      # Étape 5 : Démarrage du serveur Flask en arrière-plan
-      - name: Run Flask API in the background
-        working-directory: ./api1
-        run: |
-          start /B python app.py
-
-      # Étape 6 : Attente pour que Flask démarre correctement
-      - name: Wait for Flask to start
-        run: timeout /t 10
-
-      # Étape 7 : Tester l'API Classification avec curl
-      - name: Test the Classification API
-        shell: bash
-        working-directory: ./api1
-        run: |
-          curl --request POST http://127.0.0.1:5000/predict/classification \
-            --header "Content-Type: application/json" \
-            --data '{
-              "features": {
-                "Year": 2024,
-                "Month": 12,
-                "Day": 3,
-                "Author": "${{ env.COMMIT_AUTHOR }}",
-                "message": "${{ env.COMMIT_MESSAGE }}",
-                "modified_files": "${{ env.MODIFIED_FILES }}",
-                "functions": "test_function1 test_function2"
-              }
-            }'
-
-      # Étape 8 : Extraire les informations du commit
       - name: Get commit info and files
         id: commit_info
         run: |
@@ -79,6 +45,26 @@ jobs:
           echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
           echo "MODIFIED_FILES=$MODIFIED_FILES" >> $GITHUB_ENV
 
-      # Étape 9 : Debugger le démarrage de Flask (optionnel)
-      - name: Debug Flask API
-        run: curl http://127.0.0.1:5000
+      - name: Run Flask API in the background
+        working-directory: ./api1
+        run: |
+          start /B python app.py
+
+      - name: Wait for Flask to start
+        run: sleep 10  # Attendre que l'API démarre
+
+      - name: Test the Classification API
+        run: |
+          curl -X POST http://127.0.0.1:5000/predict/classification ^
+            -H "Content-Type: application/json" ^
+            -d "{
+              \"features\": {
+                \"Year\": 2024,
+                \"Month\": 12,
+                \"Day\": 3,
+                \"Author\": \"${{ env.COMMIT_AUTHOR }}\",
+                \"message\": \"${{ env.COMMIT_MESSAGE }}\",
+                \"modified_files\": \"${{ env.MODIFIED_FILES }}\",
+                \"functions\": \"test_function1 test_function2\"
+              }
+            }"
