@@ -31,16 +31,18 @@ jobs:
       - name: Run Flask API in the background
         working-directory: ./api1
         run: |
-          nohup python app.py > flask.log 2>&1 &
+          python app.py &
+          echo "Flask API running in the background"
 
       - name: Wait for Flask to start
         run: sleep 10  # Attendre que l'API démarre
 
       - name: Test the Classification API
+        working-directory: ./api1
         run: |
-          curl -X POST http://127.0.0.1:5000/predict/classification \
-            -H "Content-Type: application/json" \
-            -d '{
+          curl --request POST http://127.0.0.1:5000/predict/classification \
+          --header "Content-Type: application/json" \
+          --data '{
               "features": {
                 "Year": 2024,
                 "Month": 12,
