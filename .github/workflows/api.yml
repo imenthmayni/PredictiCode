@@ -28,27 +28,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
-        working-directory: ./api1
-        run: |
-          python app.py
-
-      - name: Get commit info and files
-        id: commit_info
-        run: |
-          COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an")
-          COMMIT_DATE=$(git log -1 --pretty=format:"%ad")
-          COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s")
-          MODIFIED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD | tr '\n' ', ')
-          echo "COMMIT_AUTHOR=$COMMIT_AUTHOR" >> $GITHUB_ENV
-          echo "COMMIT_DATE=$COMMIT_DATE" >> $GITHUB_ENV
-          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
-          echo "MODIFIED_FILES=$MODIFIED_FILES" >> $GITHUB_ENV
-
       - name: Run Flask API in the background
         working-directory: ./api1
         run: |
-          nohup python app.py &
+          nohup python app.py > flask.log 2>&1 &
 
       - name: Wait for Flask to start
         run: sleep 10  # Attendre que l'API démarre
