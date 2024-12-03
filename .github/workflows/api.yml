@@ -49,7 +49,7 @@ jobs:
       - name: Run Flask API in the background
         working-directory: ./api1
         run: |
-          start /B python app.py  # Exécuter Flask en arrière-plan
+          Start-Process python -ArgumentList "app.py" # Exécuter Flask en arrière-plan
 
       - name: Wait for Flask to start
         run: sleep 10  # Attendre que l'API démarre
